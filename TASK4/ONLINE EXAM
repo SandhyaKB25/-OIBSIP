@@ -1,0 +1,193 @@
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+
+class User {
+    private String username;
+    private String password;
+    private String profile;
+
+    public User(String username, String password, String profile) {
+        this.username = username;
+        this.password = password;
+        this.profile = profile;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public boolean checkPassword(String password) {
+        return this.password.equals(password);
+    }
+
+    public void updateProfile(String newProfile) {
+        this.profile = newProfile;
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
+}
+
+public class MCQApp {
+    private static Map<String, User> users = new HashMap<>();
+    private static User currentUser = null;
+    private static boolean sessionActive = false;
+    private static Timer timer;
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        initializeUsers();
+
+        while (true) {
+            System.out.println("Welcome to the MCQ App");
+            System.out.println("1. Login");
+            System.out.println("2. Update Profile");
+            System.out.println("3. Update Password");
+            System.out.println("4. Select Answers for MCQs");
+            System.out.println("5. Logout");
+            System.out.println("Enter your choice:");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // consume newline
+
+            switch (choice) {
+                case 1:
+                    login(scanner);
+                    break;
+                case 2:
+                    updateProfile(scanner);
+                    break;
+                case 3:
+                    updatePassword(scanner);
+                    break;
+                case 4:
+                    selectAnswers(scanner);
+                    break;
+                case 5:
+                    logout();
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+
+            if (!sessionActive) {
+                System.out.println("Session closed. Exiting...");
+                break;
+            }
+        }
+
+        scanner.close();
+    }
+
+    private static void initializeUsers() {
+        users.put("user1", new User("user1", "pass1", "User One"));
+        users.put("user2", new User("user2", "pass2", "User Two"));
+    }
+
+    private static void login(Scanner scanner) {
+        if (sessionActive) {
+            System.out.println("Already logged in.");
+            return;
+        }
+
+        System.out.println("Enter username:");
+        String username = scanner.nextLine();
+        System.out.println("Enter password:");
+        String password = scanner.nextLine();
+
+        if (users.containsKey(username) && users.get(username).checkPassword(password)) {
+            currentUser = users.get(username);
+            sessionActive = true;
+            System.out.println("Login successful. Welcome " + currentUser.getUsername() + "!");
+        } else {
+            System.out.println("Invalid username or password.");
+        }
+    }
+
+    private static void updateProfile(Scanner scanner) {
+        if (!sessionActive) {
+            System.out.println("Please login first.");
+            return;
+        }
+
+        System.out.println("Enter new profile information:");
+        String newProfile = scanner.nextLine();
+        currentUser.updateProfile(newProfile);
+        System.out.println("Profile updated successfully.");
+    }
+
+    private static void updatePassword(Scanner scanner) {
+        if (!sessionActive) {
+            System.out.println("Please login first.");
+            return;
+        }
+
+        System.out.println("Enter new password:");
+        String newPassword = scanner.nextLine();
+        currentUser.updatePassword(newPassword);
+        System.out.println("Password updated successfully.");
+    }
+
+    private static void selectAnswers(Scanner scanner) {
+        if (!sessionActive) {
+            System.out.println("Please login first.");
+            return;
+        }
+
+        System.out.println("Starting MCQ session. You have 60 seconds.");
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                autoSubmit();
+            }
+        }, 60000);
+
+        System.out.println("Q1: What is the capital of France?");
+        System.out.println("A. Berlin");
+        System.out.println("B. Madrid");
+        System.out.println("C. Paris");
+        System.out.println("D. Rome");
+        System.out.print("Your answer: ");
+        String answer1 = scanner.nextLine();
+
+        System.out.println("Q2: What is 2 + 2?");
+        System.out.println("A. 3");
+        System.out.println("B. 4");
+        System.out.println("C. 5");
+        System.out.println("D. 6");
+        System.out.print("Your answer: ");
+        String answer2 = scanner.nextLine();
+
+        System.out.println("Q3: What is the boiling point of water?");
+        System.out.println("A. 90°C");
+        System.out.println("B. 100°C");
+        System.out.println("C. 110°C");
+        System.out.println("D. 120°C");
+        System.out.print("Your answer: ");
+        String answer3 = scanner.nextLine();
+
+        timer.cancel();
+        System.out.println("Answers submitted: " + answer1 + ", " + answer2 + ", " + answer3);
+    }
+
+    private static void autoSubmit() {
+        System.out.println("Time's up! Answers auto-submitted.");
+        sessionActive = false;
+    }
+
+    private static void logout() {
+        if (!sessionActive) {
+            System.out.println("No active session to logout.");
+            return;
+        }
+
+        sessionActive = false;
+        currentUser = null;
+        System.out.println("Logged out successfully.");
+    }
+}
